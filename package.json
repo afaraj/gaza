@@ -2,7 +2,7 @@
   "name": "gaza",
   "version": "1.0.0",
   "scripts": {
-    "start": "vite",
+    "start": "serve dist",
     "build": "vite build",
     "serve": "vite preview"
   },
