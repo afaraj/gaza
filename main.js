@@ -87,53 +87,56 @@ let isLocationSet = false;
 
 // update the HTML page when the position changes.
 geolocation.on('change', function () {
-  // Create a new View with the same center and rotation as the geolocation
-  // Positioning the center on the geolocation coordinates
-  const currentLocation = geolocation.getPosition();
-  const currentLatLong = toLonLat(currentLocation);
-  console.log(currentLatLong);
+  if (!isLocationSet) {
+    // Create a new View with the same center and rotation as the geolocation
+    // Positioning the center on the geolocation coordinates
+    const currentLocation = geolocation.getPosition();
+    const currentLatLong = toLonLat(currentLocation);
+    console.log(currentLatLong);
 
-  // calculate transformation vector between currentLatLong and centerOfGaza
-  const centerOfGaza = [34.379618283536985, 31.428995796219397];
-  const deltaX = currentLatLong[0] - centerOfGaza[0];
-  const deltaY = currentLatLong[1] - centerOfGaza[1];
-  const transformationVector = [deltaX, deltaY];
-  Gaza.geometry.coordinates[0].forEach((coordinate) => {
-    coordinate[0] += transformationVector[0];
-    coordinate[1] += transformationVector[1];
-  });
+    // calculate transformation vector between currentLatLong and centerOfGaza
+    const centerOfGaza = [34.379618283536985, 31.428995796219397];
+    const deltaX = currentLatLong[0] - centerOfGaza[0];
+    const deltaY = currentLatLong[1] - centerOfGaza[1];
+    const transformationVector = [deltaX, deltaY];
+    Gaza.geometry.coordinates[0].forEach((coordinate) => {
+      coordinate[0] += transformationVector[0];
+      coordinate[1] += transformationVector[1];
+    });
 
-  gazaFeature = (new GeoJSON({
-    featureProjection: 'EPSG:3857'
-  })).readFeatures(Gaza);
+    gazaFeature = (new GeoJSON({
+      featureProjection: 'EPSG:3857'
+    })).readFeatures(Gaza);
 
-  const gazaVectorLayer = new VectorLayer({
-    source: new VectorSource({
-      features: gazaFeature
-    }),
-    style: new Style({
-      stroke: new Stroke({
-        color: 'rgba(29, 130, 29, 1)',
-        width: 2
+    const gazaVectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: gazaFeature
       }),
-      fill: new Fill({
-        color: 'rgba(0, 255, 0, 0.45)'
+      style: new Style({
+        stroke: new Stroke({
+          color: 'rgba(29, 130, 29, 1)',
+          width: 2
+        }),
+        fill: new Fill({
+          color: 'rgba(0, 255, 0, 0.45)'
+        })
       })
-    })
-  });
+    });
 
-  map.addLayer(gazaVectorLayer);
-  
+    map.addLayer(gazaVectorLayer);
+    
 
-  view = new View({
-    center: currentLocation,
-    zoom: 11,
-  });
-  map.setView(view);
+    view = new View({
+      center: currentLocation,
+      zoom: 11,
+    });
+    map.setView(view);
 
-  el('accuracy').innerText = geolocation.getAccuracy().toString() + ' [m]';
-  el('latitude').innerText = currentLatLong[0].toString() + ' [rad]';
-  el('longitude').innerText = currentLatLong[1].toString() + ' [rad]';
+    el('accuracy').innerText = geolocation.getAccuracy().toString() + ' [m]';
+    el('latitude').innerText = currentLatLong[0].toString() + ' [rad]';
+    el('longitude').innerText = currentLatLong[1].toString() + ' [rad]';
+    isLocationSet = true;
+  }
 });
 
 // handle geolocation error.
