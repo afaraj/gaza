@@ -6,10 +6,8 @@
     "build": "vite build",
     "serve": "vite preview"
   },
-  "devDependencies": {
-    "vite": "^4.0.4"
-  },
   "dependencies": {
+    "vite": "^4.0.4",
     "ol": "latest",
     "serve": "^14.2.1"
   }
