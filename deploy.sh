@@ -21,6 +21,6 @@ git commit -m 'deploy'
 # git push -f git@github.com:afaraj/afaraj.github.io.git main
 
 # if you are deploying to https://afaraj.github.io/<REPO>
-# git push -f git@github.com:afaraj/gaza.git main:gh-pages
+git push -f git@github.com:afaraj/gaza.git main:gh-pages
 
 cd -
