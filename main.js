@@ -60,10 +60,6 @@ function el(id) {
   return document.getElementById(id);
 }
 
-const centerOfGaza = [
-  34.379618283536985,
-  31.428995796219397
-];
 
 const accuracyFeature = new Feature();
 geolocation.on('change:accuracyGeometry', function () {
@@ -87,6 +83,7 @@ positionFeature.setStyle(
 );
 
 
+let isLocationSet = false;
 
 // update the HTML page when the position changes.
 geolocation.on('change', function () {
@@ -97,6 +94,7 @@ geolocation.on('change', function () {
   console.log(currentLatLong);
 
   // calculate transformation vector between currentLatLong and centerOfGaza
+  const centerOfGaza = [34.379618283536985, 31.428995796219397];
   const deltaX = currentLatLong[0] - centerOfGaza[0];
   const deltaY = currentLatLong[1] - centerOfGaza[1];
   const transformationVector = [deltaX, deltaY];
