@@ -131,10 +131,6 @@ geolocation.on('change', function () {
       zoom: 10,
     });
     map.setView(view);
-
-    el('accuracy').innerText = geolocation.getAccuracy().toString() + ' [m]';
-    el('latitude').innerText = currentLatLong[0].toString() + ' [rad]';
-    el('longitude').innerText = currentLatLong[1].toString() + ' [rad]';
     isLocationSet = true;
   }
 });
