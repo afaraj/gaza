@@ -20,6 +20,55 @@ import Gaza from './gaza.json';
 let isLocationSet = false;
 let currentLatLong = [0, 0];
 let gazaVectorLayer = null;
+let gazaFeature;
+let view = new View({
+  center: [0, 0],
+  zoom: 2
+});
+const centerOfGaza = [34.379618283536985, 31.428995796219397];
+const geolocation = new Geolocation({
+  // enableHighAccuracy must be set to true to have the heading value.
+  trackingOptions: {
+    enableHighAccuracy: true,
+  },
+  projection: view.getProjection(),
+});
+geolocation.setTracking(true);
+
+const polygonStyle = new Style({
+  stroke: new Stroke({
+    color: 'red',
+    lineDash: [4],
+    width: 5,
+  }),
+  fill: new Fill({
+    color: 'rgba(0, 0, 255, 1.0)',
+  }),
+});
+
+const select = new Select();
+const translate = new Translate({
+  features: select.getFeatures(),
+});
+
+var map = new Map({
+  target: 'map',
+  interactions: defaultInteractions().extend([select, translate]),
+  layers: [
+      new TileLayer({
+          source: new OSM()
+      })
+  ],
+  view: new View({
+      center: fromLonLat([0,0]),
+      zoom: 1,
+      projection: 'EPSG:3857'
+  })
+});
+
+function el(id) {
+  return document.getElementById(id);
+}
 
 /**
  * Function that rotates a point around another point by a given angle in degrees.
@@ -52,60 +101,39 @@ function getCenter(coordinates) {
   return [x / coordinates.length, y / coordinates.length];
 }
 
-let view = new View({
-  center: [0, 0],
-  zoom: 2
-});
+/**
+ * Function that rotates the polygon of Gaza by a given number of degrees.
+ * removes the existing Gaza off the map and then places the rotated Gaza on the map.
+ * 
+ * @param {number} degrees 
+ */
+function rotateGaza(degrees) {
+  const centroid = getCenter(Gaza.geometry.coordinates[0]);
+  Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
+    return rotatePoint(coordinate, centroid, degrees);
+  });
 
+  gazaFeature = (new GeoJSON({
+    featureProjection: 'EPSG:3857'
+  })).readFeatures(Gaza);
 
-const geolocation = new Geolocation({
-  // enableHighAccuracy must be set to true to have the heading value.
-  trackingOptions: {
-    enableHighAccuracy: true,
-  },
-  projection: view.getProjection(),
-});
-geolocation.setTracking(true);
-
-const polygonStyle = new Style({
-  stroke: new Stroke({
-    color: 'red',
-    lineDash: [4],
-    width: 5,
-  }),
-  fill: new Fill({
-    color: 'rgba(0, 0, 255, 1.0)',
-  }),
-});
-
-
-let gazaFeature;
-
-const select = new Select();
-const translate = new Translate({
-  features: select.getFeatures(),
-});
-
-
-var map = new Map({
-  target: 'map',
-  interactions: defaultInteractions().extend([select, translate]),
-  layers: [
-      new TileLayer({
-          source: new OSM()
+  map.removeLayer(gazaVectorLayer);
+  gazaVectorLayer = new VectorLayer({
+    source: new VectorSource({
+      features: gazaFeature
+    }),
+    style: new Style({
+      stroke: new Stroke({
+        color: 'rgba(29, 130, 29, 1)',
+        width: 2
+      }),
+      fill: new Fill({
+        color: 'rgba(0, 255, 0, 0.45)'
       })
-  ],
-  view: new View({
-      center: fromLonLat([0,0]),
-      zoom: 1,
-      projection: 'EPSG:3857'
-  })
-});
-
-function el(id) {
-  return document.getElementById(id);
+    })
+  });
+  map.addLayer(gazaVectorLayer);
 }
-
 
 const accuracyFeature = new Feature();
 geolocation.on('change:accuracyGeometry', function () {
@@ -129,119 +157,30 @@ positionFeature.setStyle(
 );
 
 el('turnright').addEventListener('pointerdown', function () {
-  const centroid = getCenter(Gaza.geometry.coordinates[0]);
-  Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
-    return rotatePoint(coordinate, centroid, -5);
-  });
-
-  gazaFeature = (new GeoJSON({
-    featureProjection: 'EPSG:3857'
-  })).readFeatures(Gaza);
-
-  map.removeLayer(gazaVectorLayer);
-
-  gazaVectorLayer = new VectorLayer({
-    source: new VectorSource({
-      features: gazaFeature
-    }),
-    style: new Style({
-      stroke: new Stroke({
-        color: 'rgba(29, 130, 29, 1)',
-        width: 2
-      }),
-      fill: new Fill({
-        color: 'rgba(0, 255, 0, 0.45)'
-      })
-    })
-  });
-
-  
-  map.addLayer(gazaVectorLayer);
+  rotateGaza(-5);
 });
 
-
 el('turnleft').addEventListener('mousedown', function () {
-  const centroid = getCenter(Gaza.geometry.coordinates[0]);
-  Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
-    return rotatePoint(coordinate, centroid, 5);
-  });
-
-  gazaFeature = (new GeoJSON({
-    featureProjection: 'EPSG:3857'
-  })).readFeatures(Gaza);
-
-  map.removeLayer(gazaVectorLayer);
-
-  gazaVectorLayer = new VectorLayer({
-    source: new VectorSource({
-      features: gazaFeature
-    }),
-    style: new Style({
-      stroke: new Stroke({
-        color: 'rgba(29, 130, 29, 1)',
-        width: 2
-      }),
-      fill: new Fill({
-        color: 'rgba(0, 255, 0, 0.45)'
-      })
-    })
-  });
-
-  
-  map.addLayer(gazaVectorLayer);
+  rotateGaza(5);
 });
 
 
 // update the HTML page when the position changes.
 geolocation.on('change', function () {
   if (!isLocationSet) {
-    // Create a new View with the same center and rotation as the geolocation
-    // Positioning the center on the geolocation coordinates
     const currentLocation = geolocation.getPosition();
     currentLatLong = toLonLat(currentLocation);
     
-    const centroid = getCenter(Gaza.geometry.coordinates[0]);
-    const degreesToRotateBy = Math.random() * 360;
-    Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
-      return rotatePoint(coordinate, centroid, degreesToRotateBy);
-    });
-
-    // calculate transformation vector between currentLatLong and centerOfGaza
-    const centerOfGaza = [34.379618283536985, 31.428995796219397];
     const deltaX = currentLatLong[0] - centerOfGaza[0];
     const deltaY = currentLatLong[1] - centerOfGaza[1];
     const transformationVector = [deltaX, deltaY];
     Gaza.geometry.coordinates[0].forEach((coordinate) => {
-      // coordinate = rotatePoint(coordinate, centerOfGaza, 90);
       coordinate[0] += transformationVector[0];
       coordinate[1] += transformationVector[1];
-      // coordinate = rotatePoint(coordinate, currentLatLong, 90);
     });
 
-    gazaFeature = (new GeoJSON({
-      featureProjection: 'EPSG:3857'
-    })).readFeatures(Gaza);
-
-    const turfLine = new GeoJSON().writeFeatureObject(gazaFeature[0]);
-
-
-    gazaVectorLayer = new VectorLayer({
-      source: new VectorSource({
-        features: gazaFeature
-      }),
-      style: new Style({
-        stroke: new Stroke({
-          color: 'rgba(29, 130, 29, 1)',
-          width: 2
-        }),
-        fill: new Fill({
-          color: 'rgba(0, 255, 0, 0.45)'
-        })
-      })
-    });
-
-    map.addLayer(gazaVectorLayer);
-    
+    const degreesToRotateBy = Math.random() * 360;
+    rotateGaza(degreesToRotateBy);
 
     view = new View({
       center: currentLocation,
