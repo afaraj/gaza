@@ -162,7 +162,6 @@ el('turnright').addEventListener('pointerdown', function () {
 
 el('turnleft').addEventListener('mousedown', function () {
   const centroid = getCenter(Gaza.geometry.coordinates[0]);
-  console.log(centroid);
   Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
     return rotatePoint(coordinate, centroid, 5);
   });
@@ -200,7 +199,12 @@ geolocation.on('change', function () {
     // Positioning the center on the geolocation coordinates
     const currentLocation = geolocation.getPosition();
     currentLatLong = toLonLat(currentLocation);
-    console.log(currentLatLong);
+    
+    const centroid = getCenter(Gaza.geometry.coordinates[0]);
+    const degreesToRotateBy = Math.random() * 360;
+    Gaza.geometry.coordinates[0] = Gaza.geometry.coordinates[0].map((coordinate) => {
+      return rotatePoint(coordinate, centroid, degreesToRotateBy);
+    });
 
     // calculate transformation vector between currentLatLong and centerOfGaza
     const centerOfGaza = [34.379618283536985, 31.428995796219397];
