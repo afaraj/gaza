@@ -241,7 +241,7 @@ geolocation.on('change', function () {
 
     view = new View({
       center: currentLocation,
-      zoom: 11,
+      zoom: 10,
     });
     map.setView(view);
     isLocationSet = true;
